@@ -260,7 +260,7 @@
         [self.failDot.heightAnchor constraintEqualToConstant:8],
 
         [self.jitStatusLabel.centerYAnchor constraintEqualToAnchor:self.jitStatusView.centerYAnchor],
-        [self.jitStatusLabel.leadingAnchor constraintEqualToAnchor:self.jitStatusView.leadingAnchor constant:34],
+        [self.jitStatusLabel.leadingAnchor constraintEqualToAnchor:self.waveformContainer.trailingAnchor constant:10],
         [self.jitStatusLabel.trailingAnchor constraintEqualToAnchor:self.jitStatusView.trailingAnchor constant:-16],
     ]];
 }
