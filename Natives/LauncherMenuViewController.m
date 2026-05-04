@@ -49,6 +49,7 @@
 @property(nonatomic) UIView *failDot;
 @property(nonatomic) UILabel *jitStatusLabel;
 @property(nonatomic) NSArray<UIView *> *waveformBars;
+@property(nonatomic) NSArray<NSLayoutConstraint *> *waveformBarHeightConstraints;
 @property(nonatomic) BOOL waveformAnimating;
 @property(nonatomic) CADisplayLink *displayLink;
 @end
@@ -180,7 +181,7 @@
     [self.jitStatusView addSubview:separator];
     [NSLayoutConstraint activateConstraints:@[
         [separator.topAnchor constraintEqualToAnchor:self.jitStatusView.topAnchor],
-        [separator.leadingAnchor constraintEqualToAnchor:self.jitStatusView.leadingAnchor],
+        [separator.leadingAnchor constraintEqualToAnchor:self.jitStatusView.leadingAnchor constant:16],
         [separator.trailingAnchor constraintEqualToAnchor:self.jitStatusView.trailingAnchor],
         [separator.heightAnchor constraintEqualToConstant:0.5],
     ]];
@@ -197,22 +198,27 @@
     CGFloat totalWidth = barCount * barWidth + (barCount - 1) * spacing;
 
     NSMutableArray *bars = [NSMutableArray array];
+    NSMutableArray *heightConstraints = [NSMutableArray array];
     for (int i = 0; i < barCount; i++) {
         UIView *bar = [[UIView alloc] init];
         bar.translatesAutoresizingMaskIntoConstraints = NO;
         bar.backgroundColor = [UIColor colorWithRed:220/255.0 green:38/255.0 blue:38/255.0 alpha:1.0];
         bar.layer.cornerRadius = barWidth / 2.0;
         [self.waveformContainer addSubview:bar];
+
+        NSLayoutConstraint *heightConstraint = [bar.heightAnchor constraintEqualToConstant:4];
         [NSLayoutConstraint activateConstraints:@[
             [bar.widthAnchor constraintEqualToConstant:barWidth],
-            [bar.heightAnchor constraintEqualToConstant:4],
+            heightConstraint,
             [bar.centerYAnchor constraintEqualToAnchor:self.waveformContainer.centerYAnchor],
             [bar.leadingAnchor constraintEqualToAnchor:self.waveformContainer.leadingAnchor
                                               constant:i * (barWidth + spacing)],
         ]];
         [bars addObject:bar];
+        [heightConstraints addObject:heightConstraint];
     }
     self.waveformBars = bars;
+    self.waveformBarHeightConstraints = heightConstraints;
 
     // Success dot (green)
     self.successDot = [[UIView alloc] init];
@@ -271,27 +277,21 @@
     CFTimeInterval t = link.timestamp * 3.5;
     static const CGFloat phases[5] = {0.0, 0.5, 1.0, 1.5, 2.0};
     CGFloat minH = 3.0, maxH = 18.0;
-    [self.waveformBars enumerateObjectsUsingBlock:^(UIView *bar, NSUInteger i, BOOL *stop) {
-        CGFloat h = minH + (maxH - minH) * (0.5 + 0.5 * sin(t + phases[i]));
-        CGRect f = bar.frame;
-        f.size.height = h;
-        f.origin.y = (20.0 - h) / 2.0;
-        bar.frame = f;
+    [self.waveformBarHeightConstraints enumerateObjectsUsingBlock:^(NSLayoutConstraint *c, NSUInteger i, BOOL *stop) {
+        c.constant = minH + (maxH - minH) * (0.5 + 0.5 * sin(t + phases[i]));
     }];
+    [self.waveformContainer layoutIfNeeded];
 }
 
 - (void)stopWaveformAnimation {
     self.waveformAnimating = NO;
     [self.displayLink invalidate];
     self.displayLink = nil;
-    // Collapse bars smoothly
     [UIView animateWithDuration:0.25 animations:^{
-        [self.waveformBars enumerateObjectsUsingBlock:^(UIView *bar, NSUInteger i, BOOL *stop) {
-            CGRect f = bar.frame;
-            f.size.height = 3.0;
-            f.origin.y = 8.5;
-            bar.frame = f;
-        }];
+        for (NSLayoutConstraint *c in self.waveformBarHeightConstraints) {
+            c.constant = 3.0;
+        }
+        [self.waveformContainer layoutIfNeeded];
     }];
 }
 
