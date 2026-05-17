@@ -25,9 +25,9 @@ jobs:
 
      - name: Set up Python packaging
        run: |
-        pip3 install mako packaging --break-system-packages
-        /opt/homebrew/bin/python3.14 -m pip install mako packaging --break-system-packages
-        /opt/homebrew/bin/python3.13 -m pip install mako packaging --break-system-packages
+         python3 -m pip install --upgrade pip
+         python3 -m pip install mako packaging
+         python3 -m pip install meson --upgrade
 
      - name: Get MoltenVK path
        run: |
