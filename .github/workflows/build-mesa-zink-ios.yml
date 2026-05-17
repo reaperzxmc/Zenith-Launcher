@@ -103,7 +103,6 @@ jobs:
             -Degl=enabled \
             -Dgles1=enabled \
             -Dgles2=enabled \
-            -Dosmesa=true \
             -Dgallium-drivers=zink \
             -Dvulkan-drivers='' \
             -Dglx=disabled \
